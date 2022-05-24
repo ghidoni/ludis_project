@@ -34,7 +34,7 @@ def calc_BABIP(x):
     if (x.AB-x.SO-x.HR+x.SF)==0:
         return 0
     else:
-        return (x.H+x.HR)/(x.AB-x.SO-x.HR+x.SF)
+        return (x.H-x.HR)/(x.AB-x.SO-x.HR+x.SF)
 
 def calc_wOBA(x):
     if (x.AB+x.BB-x.IBB+x.SF+x.HBP)==0:
