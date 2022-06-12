@@ -1,0 +1,3 @@
+https://library.fangraphs.com/pitching/fip/
+http://hosted.stats.com/mlb/stats.asp?file=glossary#Formulas
+https://rdrr.io/cran/Lahman/man/Pitching.html
