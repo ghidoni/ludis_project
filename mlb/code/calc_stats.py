@@ -114,10 +114,30 @@ def calc_KBB(x):
         return x.SO / x.BB
 
 
-df_constants = pd.read_csv("../data/raw/fangraphs_constants.csv")
-df_constants.rename(columns={"wOBA": "lgwOBA", "R/PA": "lgR/PA"}, inplace=True)
+def calc_BAOpp(x):
+    if (x.BFP - x.BB - x.HBP - x.SH - x.SF) == 0:
+        return 0
+    else:
+        return x.H / (x.BFP - x.BB - x.HBP - x.SH - x.SF)
 
-df_bat = pd.read_csv("../data/raw/Batting.csv")
+
+def calc_ERA(x):
+    return (x.ER / x.IPouts * 3) * 9
+
+
+df_constants = pd.read_csv("../data/raw/fangraphs_constants.csv").rename(
+    columns={"wOBA": "lgwOBA", "R/PA": "lgR/PA"}
+)
+
+
+df_bat = (
+    pd.read_csv("../data/raw/Batting.csv")
+    .drop(["stint", "teamID", "lgID"], axis=1)
+    .groupby(["playerID", "yearID"])
+    .sum()
+    .reset_index()
+)
+
 df_bat = pd.merge(
     df_bat,
     df_constants[
@@ -154,7 +174,13 @@ df_bat["wRC"] = df_bat.apply(calc_wRC, axis=1)
 
 df_bat.to_csv("../data/processed/Batting_proc.csv", index=False)
 
-df_pit = pd.read_csv("../data/raw/Pitching.csv")
+df_pit = (
+    pd.read_csv("../data/raw/Pitching.csv")
+    .drop(["stint", "teamID", "lgID", "BAOpp", "ERA"], axis=1)
+    .groupby(["playerID", "yearID"])
+    .sum()
+    .reset_index()
+)
 df_pit = pd.merge(
     df_pit,
     df_constants[["Season", "cFIP"]],
@@ -163,6 +189,8 @@ df_pit = pd.merge(
     right_on="Season",
 )
 
+df_pit["ERA"] = df_pit.apply(calc_ERA, axis=1)
+df_pit["BAOpp"] = df_pit.apply(calc_BAOpp, axis=1)
 df_pit["WHIP"] = df_pit.apply(calc_WHIP, axis=1)
 df_pit["FIP"] = df_pit.apply(calc_FIP, axis=1)
 df_pit["SO/BB"] = df_pit.apply(calc_KBB, axis=1)
