@@ -129,6 +129,18 @@ df_constants = pd.read_csv("../data/raw/fangraphs_constants.csv").rename(
     columns={"wOBA": "lgwOBA", "R/PA": "lgR/PA"}
 )
 
+df_people = pd.read_csv("../data/raw/People.csv")
+
+df_people = df_people.assign(
+    nameFull=lambda x: x["nameFirst"] + " " + x["nameLast"]
+).drop(
+    [
+        x
+        for x in list(df_people)
+        if x not in ["playerID", "birthYear", "nameFull", "bats", "throws"]
+    ],
+    axis=1,
+)
 
 df_bat = (
     pd.read_csv("../data/raw/Batting.csv")
@@ -159,6 +171,12 @@ df_bat = pd.merge(
     right_on="Season",
 )
 
+df_bat = pd.merge(df_bat, df_people, on="playerID", how="left").assign(
+    year=lambda x: pd.to_datetime(x["yearID"], format="%Y"),
+    age=lambda x: x["yearID"] - x["birthYear"],
+    season=lambda x: x.groupby("playerID").cumcount() + 1,
+)
+
 df_bat["PA"] = df_bat.apply(calc_PA, axis=1)
 df_bat["TB"] = df_bat.apply(calc_TB, axis=1)
 df_bat["AVG"] = df_bat.apply(calc_AVG, axis=1)
@@ -187,6 +205,12 @@ df_pit = pd.merge(
     how="left",
     left_on="yearID",
     right_on="Season",
+)
+
+df_pit = pd.merge(df_pit, df_people, on="playerID", how="left").assign(
+    year=lambda x: pd.to_datetime(x["yearID"], format="%Y"),
+    age=lambda x: x["yearID"] - x["birthYear"],
+    season=lambda x: x.groupby("playerID").cumcount() + 1,
 )
 
 df_pit["ERA"] = df_pit.apply(calc_ERA, axis=1)
