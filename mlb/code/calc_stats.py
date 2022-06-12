@@ -122,7 +122,10 @@ def calc_BAOpp(x):
 
 
 def calc_ERA(x):
-    return (x.ER / x.IPouts * 3) * 9
+    if x.IPouts == 0:
+        return 0
+    else:
+        return (x.ER / x.IPouts * 3) * 9
 
 
 df_constants = pd.read_csv("../data/raw/fangraphs_constants.csv").rename(
